@@ -4,6 +4,29 @@
 <meta charset="UTF-8">
 <title>Admin - Control Panel</title>
 <style>
+/* Lock Screen Styles */
+#lock-screen {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: #1e293b;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+#lock-screen h2 { color: white; margin-bottom: 20px; }
+#pin-input {
+    width: 200px;
+    padding: 15px;
+    text-align: center;
+    font-size: 24px;
+    letter-spacing: 10px;
+    border-radius: 10px;
+    border: none;
+}
+
+/* Original Styles */
 body { font-family: sans-serif; background: #f0f2f5; padding: 20px; }
 .card { background: white; max-width: 600px; margin: 0 auto 20px; padding: 25px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
 h2 { margin-top: 0; color: #1f2937; }
@@ -12,31 +35,60 @@ button { width: 100%; padding: 12px; background: #6366f1; color: white; border: 
 .item { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #eee; padding: 10px 0; }
 .edit { background: #10b981; width: auto; padding: 5px 15px; margin-right: 5px; }
 .del { background: #ef4444; width: auto; padding: 5px 15px; }
+
+/* Hide main content initially */
+#main-content { display: none; }
 </style>
 </head>
 <body>
 
-<div class="card">
-<h2>Add New Prompt</h2>
-<input type="text" id="img" placeholder="Image URL (e.g. Imgur Link)">
-<textarea id="txt" placeholder="Prompt Text..."></textarea>
-<select id="cat"></select>
-<button onclick="add()">Publish Prompt</button>
+<div id="lock-screen">
+    <h2>Enter Admin PIN</h2>
+    <input type="password" id="pin-input" maxlength="4" placeholder="****">
+    <p id="error-msg" style="color: #ff4444; margin-top: 10px; display: none;">Wrong PIN! Try Again.</p>
 </div>
 
-<div class="card">
-<h2>Manage Prompts</h2>
-<div id="list"></div>
-<br>
-<button style="background:#1e293b" onclick="exportData()">Download data.json</button>
+<div id="main-content">
+    <div class="card">
+        <h2>Add New Prompt</h2>
+        <input type="text" id="img" placeholder="Image URL (e.g. Imgur Link)">
+        <textarea id="txt" placeholder="Prompt Text..."></textarea>
+        <select id="cat"></select>
+        <button onclick="add()">Publish Prompt</button>
+    </div>
+
+    <div class="card">
+        <h2>Manage Prompts</h2>
+        <div id="list"></div>
+        <br>
+        <button style="background:#1e293b" onclick="exportData()">Download data.json</button>
+    </div>
 </div>
 
 <script>
+// --- PIN LOCK LOGIC ---
+const correctPin = "6655";
+const pinInput = document.getElementById('pin-input');
+const lockScreen = document.getElementById('lock-screen');
+const mainContent = document.getElementById('main-content');
+const errorMsg = document.getElementById('error-msg');
+
+pinInput.addEventListener('input', () => {
+    if (pinInput.value === correctPin) {
+        lockScreen.style.display = 'none';
+        mainContent.style.display = 'block';
+    } else if (pinInput.value.length === 4) {
+        errorMsg.style.display = 'block';
+        pinInput.value = ''; // Clear if wrong
+        setTimeout(() => { errorMsg.style.display = 'none'; }, 2000);
+    }
+});
+
+// --- ORIGINAL SCRIPT (No changes made below) ---
 const categories = ["Love Prompt","Couple Prompt","Super Hero Prompt","iPhone Edit Prompt","Simple Image Prompt","Sad Image Prompt","Funny Image Prompt","Kids Prompt","Girls Prompt","Boys Prompt","Emotional Prompt","Attitude Prompt","Alone Prompt","Travel Prompt","Nature Prompt","Village Prompt","City Prompt","Cinematic Prompt","Model Prompt","Anime Prompt","Cartoon Prompt","Logo Prompt","Business Prompt","Product Prompt","Advertisement Prompt","Thumbnail Prompt","Wedding Prompt","Birthday Prompt","Festival Prompt","Fashion Prompt","Makeup Prompt","Car Prompt","Bike Prompt","Animal Prompt","Tiger Prompt","Lion Prompt","Birds Prompt","Landscape Prompt","3D Prompt","AI Tools Prompt","Editing Prompt","Professional Prompt","Motivation Prompt","Quotes Prompt","Sad Quotes Prompt","Romantic Quotes Prompt","Islamic Prompt","Poetry Prompt","Fantasy Prompt","Action Prompt","Movie Scene Prompt","Gaming Prompt","Horror Prompt","Mystery Prompt"];
 
 let list = JSON.parse(localStorage.getItem('adminDB') || '[]');
 
-// Load Dropdown
 const select = document.getElementById('cat');
 categories.forEach(c => select.innerHTML += `<option value="${c}">${c}</option>`);
 
@@ -52,6 +104,7 @@ function render() {
 }
 
 function add() {
+    if(document.getElementById('txt').value == "") return alert("Please enter prompt text");
     const p = {
         id: Date.now(),
         image: document.getElementById('img').value,
@@ -60,9 +113,17 @@ function add() {
     };
     list.push(p);
     save();
+    document.getElementById('img').value = '';
+    document.getElementById('txt').value = '';
 }
 
-function remove(i){ list.splice(i,1); save(); }
+function remove(i){ 
+    if(confirm("Are you sure?")) {
+        list.splice(i,1); 
+        save(); 
+    }
+}
+
 function edit(i){
     const p=list[i];
     document.getElementById('img').value=p.image;
