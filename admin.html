@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin - Control Panel</title>
+<style>
+body { font-family: sans-serif; background: #f0f2f5; padding: 20px; }
+.card { background: white; max-width: 600px; margin: 0 auto 20px; padding: 25px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+h2 { margin-top: 0; color: #1f2937; }
+input, textarea, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+button { width: 100%; padding: 12px; background: #6366f1; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+.item { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #eee; padding: 10px 0; }
+.edit { background: #10b981; width: auto; padding: 5px 15px; margin-right: 5px; }
+.del { background: #ef4444; width: auto; padding: 5px 15px; }
+</style>
+</head>
+<body>
+
+<div class="card">
+<h2>Add / Edit Prompt</h2>
+<input type="text" id="img" placeholder="Image URL (e.g. Imgur Link)">
+<textarea id="txt" placeholder="Prompt Text..."></textarea>
+<select id="cat"></select>
+<button onclick="addPrompt()">Publish Prompt</button>
+</div>
+
+<div class="card">
+<h2>Manage Prompts</h2>
+<div id="list"></div>
+</div>
+
+<script>
+const GITHUB_USER = 'naeemnawwaza';
+const GITHUB_REPO = 'prompt';
+const GITHUB_BRANCH = 'main';
+const GITHUB_FILEPATH = 'data.json';
+const GITHUB_TOKEN = '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';
+
+const categories = ["Love Prompt", "Couple Prompt", "Super Hero Prompt", "iPhone Edit Prompt", "Simple Image Prompt", "Sad Image Prompt", "Funny Image Prompt", "Kids Prompt", "Girls Prompt", "Boys Prompt", "Emotional Prompt", "Attitude Prompt", "Alone Prompt", "Travel Prompt", "Nature Prompt", "Village Prompt", "City Prompt", "Cinematic Prompt", "Model Prompt", "Anime Prompt", "Cartoon Prompt", "Logo Prompt", "Business Prompt", "Product Prompt", "Advertisement Prompt", "Thumbnail Prompt", "Wedding Prompt", "Birthday Prompt", "Festival Prompt", "Fashion Prompt", "Makeup Prompt", "Car Prompt", "Bike Prompt", "Animal Prompt", "Tiger Prompt", "Lion Prompt", "Birds Prompt", "Landscape Prompt", "3D Prompt", "AI Tools Prompt", "Editing Prompt", "Professional Prompt", "Motivation Prompt", "Quotes Prompt", "Sad Quotes Prompt", "Romantic Quotes Prompt", "Islamic Prompt", "Poetry Prompt", "Fantasy Prompt", "Action Prompt", "Movie Scene Prompt", "Gaming Prompt", "Horror Prompt", "Mystery Prompt"];
+
+let list = [];
+let currentSHA = null;
+
+// Populate category dropdown
+const select = document.getElementById('cat');
+categories.forEach(c => select.innerHTML += `<option value="${c}">${c}</option>`);
+
+// Fetch GitHub data
+async function fetchGitHubData() {
+    const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${GITHUB_FILEPATH}?ref=${GITHUB_BRANCH}`;
+    const res = await fetch(url, { headers: { Authorization: `token ${GITHUB_TOKEN}` } });
+    const data = await res.json();
+    if(data.content) {
+        const content = atob(data.content);
+        const jsonData = JSON.parse(content);
+        list = jsonData.prompts || [];
+        render();
+        currentSHA = data.sha;
+    }
+}
+fetchGitHubData();
+
+// Render list
+function render() {
+    document.getElementById('list').innerHTML = list.map((p,i)=>`
+    <div class="item">
+        <span>${p.category} - ${p.text.substring(0,30)}...</span>
+        <div>
+            <button class="edit" onclick="editPrompt(${i})">Edit</button>
+            <button class="del" onclick="deletePrompt(${i})">Delete</button>
+        </div>
+    </div>
+    `).join('');
+}
+
+// Add / Edit prompt
+function addPrompt() {
+    const p = {
+        id: Date.now(),
+        image: document.getElementById('img').value,
+        text: document.getElementById('txt').value,
+        category: document.getElementById('cat').value
+    };
+    list.push(p);
+    saveGitHub();
+}
+
+// Delete prompt
+function deletePrompt(i) {
+    list.splice(i,1);
+    saveGitHub();
+}
+
+// Edit prompt
+function editPrompt(i) {
+    const p = list[i];
+    document.getElementById('img').value = p.image;
+    document.getElementById('txt').value = p.text;
+    document.getElementById('cat').value = p.category;
+    list.splice(i,1);
+    render();
+}
+
+// Save to GitHub
+async function saveGitHub() {
+    const data = { prompts: list, categories: categories };
+    const base64Content = btoa(JSON.stringify(data,null,2));
+    const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${GITHUB_FILEPATH}`;
+    const body = {
+        message: 'Update prompts via Admin App',
+        content: base64Content,
+        branch: GITHUB_BRANCH,
+        sha: currentSHA
+    };
+    const res = await fetch(url,{
+        method:'PUT',
+        headers:{
+            Authorization:`token ${GITHUB_TOKEN}`,
+            'Content-Type':'application/json'
+        },
+        body: JSON.stringify(body)
+    });
+    const result = await res.json();
+    currentSHA = result.content.sha;
+    render();
+    alert('GitHub Updated Successfully!');
+}
+</script>
+</body>
+</html>
