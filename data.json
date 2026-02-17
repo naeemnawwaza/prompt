@@ -1,15 +1,9 @@
 {
   "prompts": [
     {
-      "id": 1771357877402,
+      "id": 1771358800618,
       "image": "",
-      "text": "A stylish young man sitting casually on outdoor steps near a house entrance, wearing a shalwar kameez and waskat, and white sneakers. Athletic build, , sharp facial features, thick curly styled hair. Relaxed yet intense gaze toward the camera, hands loosely clasped. Natural daylight, soft shadows, pastel blue foreground blur creating depth, wooden window background slightly out of focus. Cinematic lifestyle photography",
-      "category": "Couple Prompt"
-    },
-    {
-      "id": 1771358066833,
-      "image": "",
-      "text": "A stylish young man sitting casually on outdoor steps near a house entrance, wearing a shalwar kameez and waskat, and white sneakers. Athletic build, , sharp facial features, thick curly styled hair. Relaxed yet intense gaze toward the camera, hands loosely clasped. Natural daylight, soft shadows, pastel blue foreground blur creating depth, wooden window background slightly out of focus. Cinematic lifestyle photography",
+      "text": "Gemini Image Editing Prompt:\nUse my uploaded photo as the main subject and keep my face 100% natural and unchanged.\nCreate a simple, clean, and elegant couple-style photo in a beautiful natural environment.\nAdd one modest girl standing with me, respectful and graceful pose. The scene should be calm and classy, not dramatic.\nEnvironment:\nA soft, beautiful outdoor setting filled with fresh roses and flowers, greenery, and a peaceful romantic-but-decent vibe.\nPose & Interaction:\nThe girl is gently holding my blazer sleeve or arm with both hands, in a sweet and respectful couple pose (no hugging, no intimacy).\nMy Outfit:\nTraditional shalwar kameez\nStylish blazer\nSports sneakers\nOne hand naturally visible in a relaxed pose\nGirl’s Outfit:\nSimple, elegant dress (modest fashion)\nSoft natural makeup\nHair neat and graceful\nStyle & Quality:\nHigh-resolution, DSLR-quality image\nNatural lighting\nSoft colors\nRealistic skin tones\nClean background with roses clearly visible\nOverall look should feel pure, classy, and aesthetic, like a beautiful couple portrait, not cinematic or dramatic.",
       "category": "Couple Prompt"
     }
   ],
