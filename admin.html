@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin - Control Panel</title>
 <style>
 /* Lock Screen Styles */
@@ -14,27 +15,86 @@
     align-items: center;
     justify-content: center;
     z-index: 9999;
+    padding: 20px;
+    box-sizing: border-box;
 }
-#lock-screen h2 { color: white; margin-bottom: 20px; }
+#lock-screen h2 { color: white; margin-bottom: 20px; font-family: sans-serif; text-align: center; }
 #pin-input {
-    width: 200px;
+    width: 100%;
+    max-width: 250px;
     padding: 15px;
     text-align: center;
     font-size: 24px;
     letter-spacing: 10px;
     border-radius: 10px;
     border: none;
+    outline: none;
 }
 
-/* Original Styles */
-body { font-family: sans-serif; background: #f0f2f5; padding: 20px; }
-.card { background: white; max-width: 600px; margin: 0 auto 20px; padding: 25px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-h2 { margin-top: 0; color: #1f2937; }
-input, textarea, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-button { width: 100%; padding: 12px; background: #6366f1; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-.item { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #eee; padding: 10px 0; }
-.edit { background: #10b981; width: auto; padding: 5px 15px; margin-right: 5px; }
-.del { background: #ef4444; width: auto; padding: 5px 15px; }
+/* Original Styles + Responsiveness */
+body { font-family: sans-serif; background: #f0f2f5; padding: 15px; margin: 0; }
+.card { 
+    background: white; 
+    max-width: 600px; 
+    width: 95%; /* Responsive width */
+    margin: 0 auto 20px; 
+    padding: 20px; 
+    border-radius: 15px; 
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+    box-sizing: border-box;
+}
+h2 { margin-top: 0; color: #1f2937; font-size: 1.5rem; }
+input, textarea, select { 
+    width: 100%; 
+    padding: 12px; 
+    margin: 10px 0; 
+    border: 1px solid #ddd; 
+    border-radius: 8px; 
+    box-sizing: border-box; 
+    font-size: 16px; /* Prevents auto-zoom on iOS */
+}
+button { 
+    width: 100%; 
+    padding: 12px; 
+    background: #6366f1; 
+    color: white; 
+    border: none; 
+    border-radius: 8px; 
+    font-weight: bold; 
+    cursor: pointer; 
+    font-size: 16px;
+    transition: background 0.3s;
+}
+button:active { opacity: 0.8; }
+
+/* Item List Styling */
+.item { 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    border-bottom: 1px solid #eee; 
+    padding: 12px 0; 
+}
+.item span { 
+    flex: 1; 
+    font-size: 14px; 
+    color: #4b5563; 
+    padding-right: 10px;
+    word-break: break-all;
+}
+.btn-group { display: flex; gap: 5px; }
+.edit { background: #10b981; width: auto; padding: 6px 12px; font-size: 13px; }
+.del { background: #ef4444; width: auto; padding: 6px 12px; font-size: 13px; }
+
+/* Responsive Adjustments */
+@media (max-width: 480px) {
+    body { padding: 10px; }
+    .card { padding: 15px; }
+    h2 { font-size: 1.2rem; }
+    .item { flex-direction: column; align-items: flex-start; }
+    .btn-group { margin-top: 10px; width: 100%; }
+    .edit, .del { flex: 1; text-align: center; }
+}
 
 /* Hide main content initially */
 #main-content { display: none; }
@@ -44,15 +104,15 @@ button { width: 100%; padding: 12px; background: #6366f1; color: white; border: 
 
 <div id="lock-screen">
     <h2>Enter Admin PIN</h2>
-    <input type="password" id="pin-input" maxlength="4" placeholder="****">
-    <p id="error-msg" style="color: #ff4444; margin-top: 10px; display: none;">Wrong PIN! Try Again.</p>
+    <input type="password" id="pin-input" maxlength="4" placeholder="****" inputmode="numeric">
+    <p id="error-msg" style="color: #ff4444; margin-top: 15px; display: none; font-family: sans-serif;">Wrong PIN! Try Again.</p>
 </div>
 
 <div id="main-content">
     <div class="card">
         <h2>Add New Prompt</h2>
         <input type="text" id="img" placeholder="Image URL (e.g. Imgur Link)">
-        <textarea id="txt" placeholder="Prompt Text..."></textarea>
+        <textarea id="txt" rows="4" placeholder="Prompt Text..."></textarea>
         <select id="cat"></select>
         <button onclick="add()">Publish Prompt</button>
     </div>
@@ -75,16 +135,18 @@ const errorMsg = document.getElementById('error-msg');
 
 pinInput.addEventListener('input', () => {
     if (pinInput.value === correctPin) {
-        lockScreen.style.display = 'none';
+        lockScreen.style.visibility = 'hidden';
+        lockScreen.style.opacity = '0';
+        lockScreen.style.transition = '0.5s';
         mainContent.style.display = 'block';
     } else if (pinInput.value.length === 4) {
         errorMsg.style.display = 'block';
-        pinInput.value = ''; // Clear if wrong
+        pinInput.value = ''; 
         setTimeout(() => { errorMsg.style.display = 'none'; }, 2000);
     }
 });
 
-// --- ORIGINAL SCRIPT (No changes made below) ---
+// --- ORIGINAL SCRIPT ---
 const categories = ["Love Prompt","Couple Prompt","Super Hero Prompt","iPhone Edit Prompt","Simple Image Prompt","Sad Image Prompt","Funny Image Prompt","Kids Prompt","Girls Prompt","Boys Prompt","Emotional Prompt","Attitude Prompt","Alone Prompt","Travel Prompt","Nature Prompt","Village Prompt","City Prompt","Cinematic Prompt","Model Prompt","Anime Prompt","Cartoon Prompt","Logo Prompt","Business Prompt","Product Prompt","Advertisement Prompt","Thumbnail Prompt","Wedding Prompt","Birthday Prompt","Festival Prompt","Fashion Prompt","Makeup Prompt","Car Prompt","Bike Prompt","Animal Prompt","Tiger Prompt","Lion Prompt","Birds Prompt","Landscape Prompt","3D Prompt","AI Tools Prompt","Editing Prompt","Professional Prompt","Motivation Prompt","Quotes Prompt","Sad Quotes Prompt","Romantic Quotes Prompt","Islamic Prompt","Poetry Prompt","Fantasy Prompt","Action Prompt","Movie Scene Prompt","Gaming Prompt","Horror Prompt","Mystery Prompt"];
 
 let list = JSON.parse(localStorage.getItem('adminDB') || '[]');
@@ -95,8 +157,8 @@ categories.forEach(c => select.innerHTML += `<option value="${c}">${c}</option>`
 function render() {
     document.getElementById('list').innerHTML = list.map((p,i)=>`
     <div class="item">
-        <span>${p.category} - ${p.text.substring(0,20)}...</span>
-        <div>
+        <span><b>${p.category}</b>: ${p.text.substring(0,30)}...</span>
+        <div class="btn-group">
             <button class="edit" onclick="edit(${i})">Edit</button>
             <button class="del" onclick="remove(${i})">Delete</button>
         </div>
@@ -104,7 +166,7 @@ function render() {
 }
 
 function add() {
-    if(document.getElementById('txt').value == "") return alert("Please enter prompt text");
+    if(document.getElementById('txt').value.trim() == "") return alert("Please enter prompt text");
     const p = {
         id: Date.now(),
         image: document.getElementById('img').value,
@@ -131,6 +193,7 @@ function edit(i){
     document.getElementById('cat').value=p.category;
     list.splice(i,1);
     render();
+    window.scrollTo(0,0); // Scroll up to edit
 }
 
 function save(){ 
