@@ -85,7 +85,8 @@ body { margin:0; font-family:'Inter',sans-serif; background:var(--bg); color:var
 </div>
 
 <script>
-let db={prompts:[]};
+let db={prompts:[], categories:[]};
+const placeholderImg="https://via.placeholder.com/800x400?text=No+Image";
 
 window.onload=()=>{
     setTimeout(()=>{
@@ -110,11 +111,21 @@ async function fetchData(){
 }
 
 function setActive(el){ document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active')); el.classList.add('active'); }
-function goHome(el){ setActive(el); document.getElementById('home-screen').classList.remove('hidden'); document.getElementById('view-port').innerHTML=''; }
+function goHome(el){ setActive(el); document.getElementById('home-screen').classList.remove('hidden'); document.getElementById('view-port').innerHTML=''; renderPromptList(db.prompts); }
 function showCats(el){ setActive(el); document.getElementById('home-screen').classList.add('hidden'); let html=`<div class="cat-grid">`; db.categories.forEach(c=>{ html+=`<div class="cat-card" onclick="filterByCat('${c}')">${c}</div>`; }); document.getElementById('view-port').innerHTML=html+`</div>`; }
 function filterByCat(cat){ const filtered=db.prompts.filter(p=>p.category===cat); renderPromptList(filtered); }
 function renderAllPrompts(){ document.getElementById('home-screen').classList.add('hidden'); renderPromptList(db.prompts); }
-function renderPromptList(list){ if(list.length===0){ document.getElementById('view-port').innerHTML="<p style='text-align:center; padding:50px;'>No prompts found here.</p>"; return; } document.getElementById('view-port').innerHTML=list.map(p=>`<div class="prompt-card"><img src="${p.image}" class="prompt-img"><div class="prompt-content"><p>${p.text}</p><div class="action-row"><button class="act-btn copy-btn" onclick="copyPrompt('${p.text}')"><i class="fas fa-copy"></i> Copy</button><button class="act-btn save-btn" onclick="saveToLocal(${p.id})"><i class="fas fa-heart"></i> Save</button></div></div></div>`).join(''); }
+function renderPromptList(list){
+    if(list.length===0){
+        document.getElementById('view-port').innerHTML="<p style='text-align:center; padding:50px;'>No prompts found here.</p>";
+        return;
+    }
+    document.getElementById('view-port').innerHTML=list.map(p=>{
+        let img = p.image && p.image.trim()!=="" ? p.image : placeholderImg;
+        return `<div class="prompt-card"><img src="${img}" class="prompt-img"><div class="prompt-content"><p>${p.text}</p><div class="action-row"><button class="act-btn copy-btn" onclick="copyPrompt('${p.text}')"><i class="fas fa-copy"></i> Copy</button><button class="act-btn save-btn" onclick="saveToLocal(${p.id})"><i class="fas fa-heart"></i> Save</button></div></div></div>`;
+    }).join('');
+}
+
 function showSaved(el){ setActive(el); document.getElementById('home-screen').classList.add('hidden'); const saved=JSON.parse(localStorage.getItem('myPrompts')||'[]'); renderPromptList(saved); }
 function showSettings(el){ setActive(el); document.getElementById('home-screen').classList.add('hidden'); document.getElementById('view-port').innerHTML=`<div style="padding:30px; text-align:center;"><h3>Settings</h3><button class="main-btn btn-prompt" style="width:100%; margin-bottom:15px;" onclick="toggleTheme()">Day/Night Mode</button><p>App Version: 2.0.1 (Premium)</p></div>`; }
 function toggleTheme(){ const theme=document.body.getAttribute('data-theme')==='dark'?'light':'dark'; document.body.setAttribute('data-theme',theme); }
