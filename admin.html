@@ -17,64 +17,41 @@ button { width: 100%; padding: 12px; background: #6366f1; color: white; border: 
 <body>
 
 <div class="card">
-<h2>Add / Edit Prompt</h2>
+<h2>Add New Prompt</h2>
 <input type="text" id="img" placeholder="Image URL (e.g. Imgur Link)">
 <textarea id="txt" placeholder="Prompt Text..."></textarea>
 <select id="cat"></select>
-<button onclick="addPrompt()">Publish Prompt</button>
+<button onclick="add()">Publish Prompt</button>
 </div>
 
 <div class="card">
 <h2>Manage Prompts</h2>
 <div id="list"></div>
+<br>
+<button style="background:#1e293b" onclick="exportData()">Download data.json</button>
 </div>
 
 <script>
-const GITHUB_USER = 'naeemnawwaza';
-const GITHUB_REPO = 'prompt';
-const GITHUB_BRANCH = 'main';
-const GITHUB_FILEPATH = 'data.json';
-const GITHUB_TOKEN = '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';
+const categories = ["Love Prompt","Couple Prompt","Super Hero Prompt","iPhone Edit Prompt","Simple Image Prompt","Sad Image Prompt","Funny Image Prompt","Kids Prompt","Girls Prompt","Boys Prompt","Emotional Prompt","Attitude Prompt","Alone Prompt","Travel Prompt","Nature Prompt","Village Prompt","City Prompt","Cinematic Prompt","Model Prompt","Anime Prompt","Cartoon Prompt","Logo Prompt","Business Prompt","Product Prompt","Advertisement Prompt","Thumbnail Prompt","Wedding Prompt","Birthday Prompt","Festival Prompt","Fashion Prompt","Makeup Prompt","Car Prompt","Bike Prompt","Animal Prompt","Tiger Prompt","Lion Prompt","Birds Prompt","Landscape Prompt","3D Prompt","AI Tools Prompt","Editing Prompt","Professional Prompt","Motivation Prompt","Quotes Prompt","Sad Quotes Prompt","Romantic Quotes Prompt","Islamic Prompt","Poetry Prompt","Fantasy Prompt","Action Prompt","Movie Scene Prompt","Gaming Prompt","Horror Prompt","Mystery Prompt"];
 
-const categories = ["Love Prompt", "Couple Prompt", "Super Hero Prompt", "iPhone Edit Prompt", "Simple Image Prompt", "Sad Image Prompt", "Funny Image Prompt", "Kids Prompt", "Girls Prompt", "Boys Prompt", "Emotional Prompt", "Attitude Prompt", "Alone Prompt", "Travel Prompt", "Nature Prompt", "Village Prompt", "City Prompt", "Cinematic Prompt", "Model Prompt", "Anime Prompt", "Cartoon Prompt", "Logo Prompt", "Business Prompt", "Product Prompt", "Advertisement Prompt", "Thumbnail Prompt", "Wedding Prompt", "Birthday Prompt", "Festival Prompt", "Fashion Prompt", "Makeup Prompt", "Car Prompt", "Bike Prompt", "Animal Prompt", "Tiger Prompt", "Lion Prompt", "Birds Prompt", "Landscape Prompt", "3D Prompt", "AI Tools Prompt", "Editing Prompt", "Professional Prompt", "Motivation Prompt", "Quotes Prompt", "Sad Quotes Prompt", "Romantic Quotes Prompt", "Islamic Prompt", "Poetry Prompt", "Fantasy Prompt", "Action Prompt", "Movie Scene Prompt", "Gaming Prompt", "Horror Prompt", "Mystery Prompt"];
+let list = JSON.parse(localStorage.getItem('adminDB') || '[]');
 
-let list = [];
-let currentSHA = null;
-
-// Populate category dropdown
+// Load Dropdown
 const select = document.getElementById('cat');
 categories.forEach(c => select.innerHTML += `<option value="${c}">${c}</option>`);
 
-// Fetch GitHub data
-async function fetchGitHubData() {
-    const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${GITHUB_FILEPATH}?ref=${GITHUB_BRANCH}`;
-    const res = await fetch(url, { headers: { Authorization: `token ${GITHUB_TOKEN}` } });
-    const data = await res.json();
-    if(data.content) {
-        const content = atob(data.content);
-        const jsonData = JSON.parse(content);
-        list = jsonData.prompts || [];
-        render();
-        currentSHA = data.sha;
-    }
-}
-fetchGitHubData();
-
-// Render list
 function render() {
     document.getElementById('list').innerHTML = list.map((p,i)=>`
     <div class="item">
-        <span>${p.category} - ${p.text.substring(0,30)}...</span>
+        <span>${p.category} - ${p.text.substring(0,20)}...</span>
         <div>
-            <button class="edit" onclick="editPrompt(${i})">Edit</button>
-            <button class="del" onclick="deletePrompt(${i})">Delete</button>
+            <button class="edit" onclick="edit(${i})">Edit</button>
+            <button class="del" onclick="remove(${i})">Delete</button>
         </div>
-    </div>
-    `).join('');
+    </div>`).join('');
 }
 
-// Add / Edit prompt
-function addPrompt() {
+function add() {
     const p = {
         id: Date.now(),
         image: document.getElementById('img').value,
@@ -82,49 +59,40 @@ function addPrompt() {
         category: document.getElementById('cat').value
     };
     list.push(p);
-    saveGitHub();
+    save();
 }
 
-// Delete prompt
-function deletePrompt(i) {
-    list.splice(i,1);
-    saveGitHub();
-}
-
-// Edit prompt
-function editPrompt(i) {
-    const p = list[i];
-    document.getElementById('img').value = p.image;
-    document.getElementById('txt').value = p.text;
-    document.getElementById('cat').value = p.category;
+function remove(i){ list.splice(i,1); save(); }
+function edit(i){
+    const p=list[i];
+    document.getElementById('img').value=p.image;
+    document.getElementById('txt').value=p.text;
+    document.getElementById('cat').value=p.category;
     list.splice(i,1);
     render();
 }
 
-// Save to GitHub
-async function saveGitHub() {
-    const data = { prompts: list, categories: categories };
-    const base64Content = btoa(JSON.stringify(data,null,2));
-    const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${GITHUB_FILEPATH}`;
-    const body = {
-        message: 'Update prompts via Admin App',
-        content: base64Content,
-        branch: GITHUB_BRANCH,
-        sha: currentSHA
-    };
-    const res = await fetch(url,{
-        method:'PUT',
-        headers:{
-            Authorization:`token ${GITHUB_TOKEN}`,
-            'Content-Type':'application/json'
-        },
-        body: JSON.stringify(body)
-    });
-    const result = await res.json();
-    currentSHA = result.content.sha;
+function save(){ 
+    localStorage.setItem('adminDB',JSON.stringify(list));
     render();
-    alert('GitHub Updated Successfully!');
 }
+
+function exportData(){
+    const data = { prompts:list, categories:categories };
+    const blob = new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download="data.json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    alert("data.json downloaded successfully!");
+}
+
+render();
 </script>
+
 </body>
 </html>
