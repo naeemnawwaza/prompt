@@ -31,12 +31,12 @@
     outline: none;
 }
 
-/* Original Styles + Responsiveness */
+/* Main UI Styles */
 body { font-family: sans-serif; background: #f0f2f5; padding: 15px; margin: 0; }
 .card { 
     background: white; 
     max-width: 600px; 
-    width: 95%; /* Responsive width */
+    width: 95%; 
     margin: 0 auto 20px; 
     padding: 20px; 
     border-radius: 15px; 
@@ -51,8 +51,26 @@ input, textarea, select {
     border: 1px solid #ddd; 
     border-radius: 8px; 
     box-sizing: border-box; 
-    font-size: 16px; /* Prevents auto-zoom on iOS */
+    font-size: 16px;
 }
+
+/* Custom Upload Styling */
+.upload-container {
+    background: #f8fafc;
+    border: 2px dashed #cbd5e1;
+    padding: 15px;
+    text-align: center;
+    border-radius: 8px;
+    margin: 10px 0;
+    cursor: pointer;
+}
+#preview { 
+    max-width: 100px; 
+    display: none; 
+    margin: 10px auto; 
+    border-radius: 5px; 
+}
+
 button { 
     width: 100%; 
     padding: 12px; 
@@ -63,11 +81,9 @@ button {
     font-weight: bold; 
     cursor: pointer; 
     font-size: 16px;
-    transition: background 0.3s;
 }
 button:active { opacity: 0.8; }
 
-/* Item List Styling */
 .item { 
     display: flex; 
     align-items: center; 
@@ -75,28 +91,18 @@ button:active { opacity: 0.8; }
     border-bottom: 1px solid #eee; 
     padding: 12px 0; 
 }
-.item span { 
-    flex: 1; 
-    font-size: 14px; 
-    color: #4b5563; 
-    padding-right: 10px;
-    word-break: break-all;
-}
+.item span { flex: 1; font-size: 14px; color: #4b5563; word-break: break-all; padding-right: 10px; }
 .btn-group { display: flex; gap: 5px; }
 .edit { background: #10b981; width: auto; padding: 6px 12px; font-size: 13px; }
 .del { background: #ef4444; width: auto; padding: 6px 12px; font-size: 13px; }
 
-/* Responsive Adjustments */
+/* Responsive */
 @media (max-width: 480px) {
-    body { padding: 10px; }
-    .card { padding: 15px; }
-    h2 { font-size: 1.2rem; }
     .item { flex-direction: column; align-items: flex-start; }
     .btn-group { margin-top: 10px; width: 100%; }
     .edit, .del { flex: 1; text-align: center; }
 }
 
-/* Hide main content initially */
 #main-content { display: none; }
 </style>
 </head>
@@ -105,13 +111,19 @@ button:active { opacity: 0.8; }
 <div id="lock-screen">
     <h2>Enter Admin PIN</h2>
     <input type="password" id="pin-input" maxlength="4" placeholder="****" inputmode="numeric">
-    <p id="error-msg" style="color: #ff4444; margin-top: 15px; display: none; font-family: sans-serif;">Wrong PIN! Try Again.</p>
+    <p id="error-msg" style="color: #ff4444; margin-top: 15px; display: none;">Wrong PIN!</p>
 </div>
 
 <div id="main-content">
     <div class="card">
         <h2>Add New Prompt</h2>
-        <input type="text" id="img" placeholder="Image URL (e.g. Imgur Link)">
+        
+        <div class="upload-container" onclick="document.getElementById('file-input').click()">
+            <span id="upload-text">📸 Click to Upload Image</span>
+            <input type="file" id="file-input" accept="image/*" style="display:none" onchange="handleImage(this)">
+            <img id="preview">
+        </div>
+
         <textarea id="txt" rows="4" placeholder="Prompt Text..."></textarea>
         <select id="cat"></select>
         <button onclick="add()">Publish Prompt</button>
@@ -126,31 +138,40 @@ button:active { opacity: 0.8; }
 </div>
 
 <script>
-// --- PIN LOCK LOGIC ---
+let currentImageData = ""; // Image data store karne ke liye
+
+// PIN Logic
 const correctPin = "6655";
 const pinInput = document.getElementById('pin-input');
-const lockScreen = document.getElementById('lock-screen');
-const mainContent = document.getElementById('main-content');
-const errorMsg = document.getElementById('error-msg');
-
 pinInput.addEventListener('input', () => {
     if (pinInput.value === correctPin) {
-        lockScreen.style.visibility = 'hidden';
-        lockScreen.style.opacity = '0';
-        lockScreen.style.transition = '0.5s';
-        mainContent.style.display = 'block';
+        document.getElementById('lock-screen').style.display = 'none';
+        document.getElementById('main-content').style.display = 'block';
     } else if (pinInput.value.length === 4) {
-        errorMsg.style.display = 'block';
-        pinInput.value = ''; 
-        setTimeout(() => { errorMsg.style.display = 'none'; }, 2000);
+        document.getElementById('error-msg').style.display = 'block';
+        pinInput.value = '';
+        setTimeout(() => { document.getElementById('error-msg').style.display = 'none'; }, 2000);
     }
 });
 
-// --- ORIGINAL SCRIPT ---
+// Image Handling (Gallery se photo lena)
+function handleImage(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            currentImageData = e.target.result;
+            const preview = document.getElementById('preview');
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+            document.getElementById('upload-text').innerText = "Image Selected ✅";
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
 const categories = ["Love Prompt","Couple Prompt","Super Hero Prompt","iPhone Edit Prompt","Simple Image Prompt","Sad Image Prompt","Funny Image Prompt","Kids Prompt","Girls Prompt","Boys Prompt","Emotional Prompt","Attitude Prompt","Alone Prompt","Travel Prompt","Nature Prompt","Village Prompt","City Prompt","Cinematic Prompt","Model Prompt","Anime Prompt","Cartoon Prompt","Logo Prompt","Business Prompt","Product Prompt","Advertisement Prompt","Thumbnail Prompt","Wedding Prompt","Birthday Prompt","Festival Prompt","Fashion Prompt","Makeup Prompt","Car Prompt","Bike Prompt","Animal Prompt","Tiger Prompt","Lion Prompt","Birds Prompt","Landscape Prompt","3D Prompt","AI Tools Prompt","Editing Prompt","Professional Prompt","Motivation Prompt","Quotes Prompt","Sad Quotes Prompt","Romantic Quotes Prompt","Islamic Prompt","Poetry Prompt","Fantasy Prompt","Action Prompt","Movie Scene Prompt","Gaming Prompt","Horror Prompt","Mystery Prompt"];
 
 let list = JSON.parse(localStorage.getItem('adminDB') || '[]');
-
 const select = document.getElementById('cat');
 categories.forEach(c => select.innerHTML += `<option value="${c}">${c}</option>`);
 
@@ -166,34 +187,41 @@ function render() {
 }
 
 function add() {
-    if(document.getElementById('txt').value.trim() == "") return alert("Please enter prompt text");
+    const txt = document.getElementById('txt').value.trim();
+    if(txt == "") return alert("Please enter prompt text");
+    
     const p = {
         id: Date.now(),
-        image: document.getElementById('img').value,
-        text: document.getElementById('txt').value,
+        image: currentImageData, // Link ki jagah ab image data save hoga
+        text: txt,
         category: document.getElementById('cat').value
     };
     list.push(p);
     save();
-    document.getElementById('img').value = '';
+    
+    // Reset fields
+    currentImageData = "";
+    document.getElementById('preview').style.display = 'none';
+    document.getElementById('upload-text').innerText = "📸 Click to Upload Image";
     document.getElementById('txt').value = '';
 }
 
 function remove(i){ 
-    if(confirm("Are you sure?")) {
-        list.splice(i,1); 
-        save(); 
-    }
+    if(confirm("Are you sure?")) { list.splice(i,1); save(); }
 }
 
 function edit(i){
-    const p=list[i];
-    document.getElementById('img').value=p.image;
-    document.getElementById('txt').value=p.text;
-    document.getElementById('cat').value=p.category;
+    const p = list[i];
+    currentImageData = p.image;
+    if(p.image) {
+        document.getElementById('preview').src = p.image;
+        document.getElementById('preview').style.display = 'block';
+    }
+    document.getElementById('txt').value = p.text;
+    document.getElementById('cat').value = p.category;
     list.splice(i,1);
     render();
-    window.scrollTo(0,0); // Scroll up to edit
+    window.scrollTo(0,0);
 }
 
 function save(){ 
@@ -208,11 +236,7 @@ function exportData(){
     const a = document.createElement('a');
     a.href = url;
     a.download="data.json";
-    document.body.appendChild(a);
     a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    alert("data.json downloaded successfully!");
 }
 
 render();
